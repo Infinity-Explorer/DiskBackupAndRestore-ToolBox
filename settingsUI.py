@@ -21,7 +21,7 @@ class SettingsUI:
         settings_frame = tk.Frame(self.root, bg="#f0f0f0")
         settings_frame.pack(pady=10, padx=20, fill=tk.BOTH, expand=True)
         # 版本
-        version_frame = tk.Label(settings_frame, text="版本信息\nDBAR Toolbox v1.0~b1", bg="#f0f0f0", font=('微软雅黑', 10, 'bold'))
+        version_frame = tk.Label(settings_frame, text="版本信息\nDBAR Toolbox v1.0~b2", bg="#f0f0f0", font=('微软雅黑', 10, 'bold'))
         version_frame.pack()
         # 备份设置
         backup_frame = tk.LabelFrame(settings_frame, text="备份设置", bg="#f0f0f0", font=('微软雅黑', 10, 'bold'))
@@ -99,3 +99,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = SettingsUI(root)
     root.mainloop()
+
