@@ -41,7 +41,16 @@ class WimBackup:
         txtFileInfo = "backupRecords.txt"
         with open(txtFileInfo, "a")as f:
             f.write(f"{backupInfo}\n")
-        print("备份信息已经成功写入文件")
+
+        with open(txtFileInfo, "r")as f:        #检查是否写入成功
+            backupTXTFileInfo = f.readlines()
+            if backupTXTFileInfo == "":
+                print("备份信息未成功写入文件")
+                os.remove(txtFileInfo)
+                with open(txtFileInfo, "a")as f:
+                    f.write(f"{backupInfo}\n")
+            else:
+                print("备份信息已成功写入文件")
     
     def creatFullBackup(backupPath):
         backupFileNum = 0
