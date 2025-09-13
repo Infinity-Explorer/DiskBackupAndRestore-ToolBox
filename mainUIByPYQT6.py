@@ -1,10 +1,13 @@
 import sys
+import platform
+import os
+import multiprocessing
+import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                             QHBoxLayout, QPushButton, QLabel, QMessageBox,
                             QFrame, QSizePolicy)
-from PyQt6.QtCore import Qt, QUrl
+from PyQt6.QtCore import Qt, QUrl, QTimer
 from PyQt6.QtGui import QDesktopServices
-import os
 
 class MainUI(QMainWindow):
     def __init__(self):
@@ -23,7 +26,7 @@ class MainUI(QMainWindow):
         # 欢迎标签
         self.welcome_label = QLabel("欢迎使用DBAR工具，选择一个选项以继续")
         self.welcome_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.welcome_label.setStyleSheet("font-size: 12px;")
+        self.welcome_label.setStyleSheet("font-size: 20px;")
         self.main_layout.addWidget(self.welcome_label)
         
         # 创建按钮区域
@@ -34,11 +37,13 @@ class MainUI(QMainWindow):
         self.backup_button = QPushButton("➡  备份我的文件")
         self.backup_button.clicked.connect(self.backup_files)
         self.button_layout.addWidget(self.backup_button)
+        self.backup_button.setStyleSheet("background-color: #4CAF50; color: white;")
         
         # 恢复按钮
         self.restore_button = QPushButton("➡   恢复我的文件")
         self.restore_button.clicked.connect(self.restore_files)
         self.button_layout.addWidget(self.restore_button)
+        self.restore_button.setStyleSheet("background-color: #4CAF50; color: white;")
         
         # 设置按钮
         self.settings_button = QPushButton("⚙")
@@ -60,6 +65,17 @@ class MainUI(QMainWindow):
         self.center_frame.setStyleSheet("background-color: white; border: 1px solid #ccc;")
         self.main_layout.addWidget(self.center_frame, stretch=1)
         
+        # 添加系统信息
+        self.system_info_label = QLabel()
+        self.system_info_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        self.center_layout.addWidget(self.system_info_label)
+        self.update_system_info()
+        
+        # 添加定时器更新系统信息
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_system_info)
+        self.timer.start(5000)  # 每5秒更新一次
+        
         # 底部帮助区域
         self.help_layout = QHBoxLayout()
         self.main_layout.addLayout(self.help_layout)
@@ -70,6 +86,55 @@ class MainUI(QMainWindow):
         self.help_button = QPushButton("点击这里")
         self.help_button.clicked.connect(self.open_help)
         self.help_layout.addWidget(self.help_button)
+        
+    def update_system_info(self):
+        # 获取系统信息
+        system = platform.system()
+        release = platform.release()
+        version = platform.version()
+        processor = platform.processor()
+        
+        # 获取CPU核心数
+        cpu_count = multiprocessing.cpu_count()
+        
+        # 获取内存信息（简化版）
+        try:
+            import psutil
+            memory = psutil.virtual_memory()
+            memory_total = round(memory.total / (1024 ** 3), 2)  # GB
+            memory_used = round(memory.used / (1024 ** 3), 2)  # GB
+            memory_percent = memory.percent
+            memory_available = True
+        except ImportError:
+            memory_total = "未知"
+            memory_used = "未知"
+            memory_percent = "未知"
+            memory_available = False
+        
+        # 获取当前时间
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # 构建信息文本
+        info_text = f"""
+        <b>系统信息</b><br>
+        操作系统: {system} {release}<br>
+        处理器: {processor}<br>
+        CPU核心数: {cpu_count}<br>
+        当前时间: {current_time}<br><br>
+        
+        <b>内存信息</b><br>
+        """
+        
+        if memory_available:
+            info_text += f"""
+        总内存: {memory_total} GB<br>
+        已使用: {memory_used} GB<br>
+        使用率: {memory_percent}%
+        """
+        else:
+            info_text += "（需要安装psutil库以获取详细信息）"
+        
+        self.system_info_label.setText(info_text)
         
     def backup_files(self):
         try:
