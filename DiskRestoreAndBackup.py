@@ -8,6 +8,9 @@ from datetime import datetime
 import hashlib
 import re
 
+def __version__():
+    return "1.1.1"
+
 # 设置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("wim_backup")
@@ -161,3 +164,4 @@ class WimRestore:
             print("错误：备份文件编号格式不正确")
         except Exception as e:
             print(f"发生错误: {e}")
+
