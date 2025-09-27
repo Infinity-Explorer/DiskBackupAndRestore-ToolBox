@@ -8,8 +8,21 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                             QFrame, QSizePolicy)
 from PyQt6.QtCore import Qt, QUrl, QTimer
 from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtGui import QPalette, QColor
+import re
 
 class MainUI(QMainWindow):
+    def readSettingsInfoFromTXT(objFunc:str):             # 目前仅支持读取主题
+        with open("settings.txt", "r",encoding="utf-8") as f:
+            settingsInfo = f.readlines()
+            settingsInfo = str(settingsInfo)
+            print(type(settingsInfo))
+            print(settingsInfo)
+            matchObject = re.search(r"'theme':\s*'([^']+)'", settingsInfo)
+            if objFunc == "theme":
+                print(matchObject.group(1))
+                return matchObject.group(1)
+            
     def __init__(self):
         super().__init__()
         self.setWindowTitle("DBAR 工具箱")
@@ -19,6 +32,16 @@ class MainUI(QMainWindow):
         self.main_widget = QWidget()
         self.setCentralWidget(self.main_widget)
         
+        if MainUI.readSettingsInfoFromTXT("theme") == "深色":
+            self.palette = QPalette()
+            self.palette.setColor(QPalette.ColorRole.Window, QColor(30,30,30))
+            self.palette.setColor(QPalette.ColorRole.WindowText, QColor(220,220,220))
+            self.palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
+            self.palette.setColor(QPalette.ColorRole.AlternateBase, QColor(53, 53, 53))
+            self.palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.white)
+            self.setPalette(self.palette)
+            QApplication.setPalette(self.palette)
+
         # 创建主布局
         self.main_layout = QVBoxLayout()
         self.main_widget.setLayout(self.main_layout)
@@ -37,13 +60,17 @@ class MainUI(QMainWindow):
         self.backup_button = QPushButton("➡  备份我的文件")
         self.backup_button.clicked.connect(self.backup_files)
         self.button_layout.addWidget(self.backup_button)
-        self.backup_button.setStyleSheet("background-color: #4CAF50; color: white;")
+        self.backup_button.setStyleSheet("background-color: #4CAF50; color: white; font-size: 14px;")
+        self.backup_button.setFixedSize(300, 50)
+        self.backup_button.setToolTip("点击备份我的文件")
         
         # 恢复按钮
         self.restore_button = QPushButton("➡   恢复我的文件")
         self.restore_button.clicked.connect(self.restore_files)
         self.button_layout.addWidget(self.restore_button)
-        self.restore_button.setStyleSheet("background-color: #4CAF50; color: white;")
+        self.restore_button.setStyleSheet("background-color: #4CAF50; color: white; font-size: 14px;")
+        self.restore_button.setFixedSize(300, 50)
+        self.restore_button.setToolTip("点击恢复我的文件")
         
         # 设置按钮
         self.settings_button = QPushButton("⚙")
