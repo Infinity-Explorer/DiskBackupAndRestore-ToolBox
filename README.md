@@ -28,7 +28,7 @@ DBAR (Disk Backup And Restore) 工具箱是一款基于 WIM 技术的 Windows �
 1. 克隆仓库：
    ```bash
    git clone https://github.com/Infinity-Explorer/DiskBackupAndRestore-ToolBox.git
-   cd DBAR-ToolBox
+   cd DiskBackupAndRestore-ToolBox
 
 2. 安装依赖：
    ```bash
