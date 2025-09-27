@@ -89,6 +89,8 @@ class SettingsUI:
         }
         
         # 实际应用中，这里应该将设置保存到配置文件中
+        with open("settings.txt", "w",encoding='utf-8') as f:
+            f.write(str(settings))
         print("设置已保存:", settings)
         
         # 显示保存成功的消息
@@ -99,5 +101,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = SettingsUI(root)
     root.mainloop()
-
-
