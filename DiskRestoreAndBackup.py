@@ -8,12 +8,12 @@ from datetime import datetime
 import hashlib
 import re
 
-def __version__():
-    return "1.1.1"
-
 # 设置日志
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("wim_backup")
+
+def __version__():
+    return "1.1.2"
 
 class WIMOperation(Enum):
     CAPTURE = "capture"
@@ -55,9 +55,12 @@ class WimBackup:
             else:
                 print("备份信息已成功写入文件")
     
-    def creatFullBackup(backupPath):
+    def creatFullBackup(backupPath, compressLevel:str):
         backupFileNum = 0
         backupDir = "./wimlib/backup"
+
+        if compressLevel == "default":
+            compressLevel = 7
         
         while os.path.exists(os.path.join(backupDir,f"backup_{backupFileNum}.wim")):            #如果路径有效则继续增加backupFileNum
             backupFileNum += 1
@@ -65,7 +68,7 @@ class WimBackup:
         backupFileName = os.path.join(backupDir, f"backup_{backupFileNum}.wim")
         print(backupFileName)
 
-        command = f"sudo ./wimlib/wimlib-imagex.exe capture {backupPath} {backupFileName}"
+        command = f"sudo ./wimlib/wimlib-imagex.exe capture --compress=LZX:{str(compressLevel)} {backupPath} {backupFileName} {backupPath} {backupFileName}" # 设置压缩级别，default=7
         print(command)
         result=os.system(command)
         if result == 0:
@@ -76,39 +79,81 @@ class WimBackup:
             print("备份失败")
 
 class WimRestore:
-    def RestoreWim(sourcePath,backupFilePath,autoRecoveryAllBackupFiles:bool,autoRestoreBackupsToPath:bool):
+    def RestoreWim(sourcePath,backupFilePath,autoRecoveryAllBackupFiles:bool,autoRestoreBackupsToPath:bool,checkHash:bool):
         backupFileNum=0
         backupDir="./wimlib/backup"
-        if autoRecoveryAllBackupFiles == False:
-            command=f"sudo ./wimlib/wimlib-imagex.exe apply {backupFilePath} {sourcePath}"
-            print(command)
-            result=os.system(command)
-            if result==0:
-                print("文件恢复成功")
-            else:
-                print("文件恢复失败")
-        
-        if autoRestoreBackupsToPath==True:
-            pathInfo = WimRestore.readBackupInformationsFromTXT(backupFilePath,"sourceFilePath")
-            command2=f"sudo ./wimlib/wimlib-imagex.exe apply {backupFilePath} {pathInfo}"
-            print(command2)
-            result=os.system(command2)
-            if result==0:
-                print("文件恢复成功")
-            else:
-                print("文件恢复失败")
+
+        if checkHash:
+            hashCheckResult = WimHashCheck.checkHash(backupFilePath)
+            print(hashCheckResult)
+            if hashCheckResult == False:
+                print("备份文件校验失败")
+                return False
+            elif hashCheckResult == True:
+                if autoRestoreBackupsToPath==True:
+                    pathInfo = WimRestore.readBackupInformationsFromTXT(backupFilePath,"sourceFilePath")
+                    command2=f"sudo ./wimlib/wimlib-imagex.exe apply {backupFilePath} {pathInfo}"
+                    print(command2)
+                    result=os.system(command2)
+                    if result==0:
+                        print("文件恢复成功")
+                    else:
+                        print("文件恢复失败")
                 
-        elif autoRecoveryAllBackupFiles==True:
-            while True:
-                backupFilePath=os.path.join(backupDir,f"backup_{backupFileNum}.wim")
-                print(backupFilePath)
-                if not os.path.exists(backupFilePath):
-                    print("批量恢复已完成")
-                    break
-                command2=f"sudo ./wimlib/wimlib-imagex.exe apply {backupFilePath} {sourcePath}"
+                if autoRecoveryAllBackupFiles==True:
+                    while True:
+                        backupFilePath=os.path.join(backupDir,f"backup_{backupFileNum}.wim")
+                        print(backupFilePath)
+                        if not os.path.exists(backupFilePath):
+                            print("批量恢复已完成")
+                            break
+                        command2=f"sudo ./wimlib/wimlib-imagex.exe apply {backupFilePath} {sourcePath}"
+                        print(command2)
+                        result=os.system(command2)
+                        backupFileNum+=1
+                    
+                else:
+                    command3 = f"sudo ./wimlib/wimlib-imagex.exe apply {backupFilePath} {sourcePath}"
+                    print(command3)
+                    result=os.system(command3)
+                    if result==0:
+                        print("文件恢复成功")
+                    else:
+                        print("文件恢复失败")
+
+        else:
+            if autoRestoreBackupsToPath==True:
+                pathInfo = WimRestore.readBackupInformationsFromTXT(backupFilePath,"sourceFilePath")
+                command2=f"sudo ./wimlib/wimlib-imagex.exe apply {backupFilePath} {pathInfo}"
                 print(command2)
                 result=os.system(command2)
-                backupFileNum+=1
+                if result==0:
+                    print("文件恢复成功")
+                else:
+                    print("文件恢复失败")
+                
+            if autoRecoveryAllBackupFiles==True:
+                while True:
+                    backupFilePath=os.path.join(backupDir,f"backup_{backupFileNum}.wim")
+                    print(backupFilePath)
+                    if not os.path.exists(backupFilePath):
+                        print("批量恢复已完成")
+                        break
+                    command2=f"sudo ./wimlib/wimlib-imagex.exe apply {backupFilePath} {sourcePath}"
+                    print(command2)
+                    result=os.system(command2)
+                    backupFileNum+=1
+
+            else:
+                command4 = f"sudo ./wimlib/wimlib-imagex.exe apply {backupFilePath} {sourcePath}"
+                print(command4)
+                result=os.system(command4)
+                if result==0:
+                    print("文件恢复成功")
+                else:
+                    print("文件恢复失败")
+        
+        
 
     def readBackupInformationsFromTXT(backupFile,objectReturn:str):
     # 使用正则表达式从备份文件名中提取信息
@@ -165,3 +210,16 @@ class WimRestore:
         except Exception as e:
             print(f"发生错误: {e}")
 
+class WimHashCheck(WimRestore):
+    
+    def checkHash(backupFile):
+        with open(backupFile, "rb") as f:
+            fileHashNew = hashlib.md5(f.read()).hexdigest()
+        
+        fileHashOld = WimRestore.readBackupInformationsFromTXT(backupFile,"fileHash")
+        if fileHashNew == fileHashOld:
+            print("文件哈希值匹配")
+            return True
+        else:
+            print("文件哈希值不匹配")
+            return False
