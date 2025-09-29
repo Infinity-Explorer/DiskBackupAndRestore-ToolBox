@@ -172,7 +172,7 @@ class RestoreUI:
             
             # 执行恢复
             print(backup_file, restore_path)
-            success = WimRestore.RestoreWim(restore_path,backup_file,autoRecoveryAllBackupFiles=False,autoRestoreBackupsToPath=False)
+            success = WimRestore.RestoreWim(restore_path,backup_file,autoRecoveryAllBackupFiles=False,autoRestoreBackupsToPath=False,checkHash=False)
             
            
             self.status_label.config(text="恢复完成")
@@ -199,3 +199,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = RestoreUI(root)
     root.mainloop()
+
