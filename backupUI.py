@@ -55,7 +55,8 @@ class BackupUI:
             
             # 创建完整备份
         success = WimBackup.creatFullBackup(
-                source
+                source,
+                compressLevel="default"
             )
             
         if success:
@@ -75,3 +76,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = BackupUI(root)
     root.mainloop()
+
