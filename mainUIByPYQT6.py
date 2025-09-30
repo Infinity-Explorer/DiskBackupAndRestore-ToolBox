@@ -12,6 +12,10 @@ from PyQt6.QtGui import QPalette, QColor
 import re
 
 class MainUI(QMainWindow):
+
+    if os.path.exists("settings.txt") != True:
+        with open("settings.txt", "w",encoding="utf-8") as f:
+            f.write("{'compression': '中等', 'verify_backup': True, 'confirm_overwrite': True, 'create_directories': True, 'theme': '浅色'}")
     def readSettingsInfoFromTXT(objFunc:str):             # 目前仅支持读取主题
         with open("settings.txt", "r",encoding="utf-8") as f:
             settingsInfo = f.readlines()
@@ -20,6 +24,10 @@ class MainUI(QMainWindow):
             print(settingsInfo)
             matchObject = re.search(r"'theme':\s*'([^']+)'", settingsInfo)
             if objFunc == "theme":
+                print(matchObject.group(1))
+                return matchObject.group(1)
+            if objFunc == "compressLevel":
+                matchObject = re.search(r"'compression':\s*'([^']+)'", settingsInfo)
                 print(matchObject.group(1))
                 return matchObject.group(1)
             
