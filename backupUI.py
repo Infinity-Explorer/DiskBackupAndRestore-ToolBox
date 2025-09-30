@@ -1,6 +1,9 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+import mainUIByPYQT6 as mainUIModule
 from DiskRestoreAndBackup import WimBackup, WIMOperation
 
 class BackupUI:
@@ -14,6 +17,9 @@ class BackupUI:
         
         # 初始化备份对象
         self.backup_obj = None
+
+
+    
         
     def create_widgets(self):
         # 源路径选择
@@ -54,17 +60,23 @@ class BackupUI:
             # 构建完整的备份文件路径
             
             # 创建完整备份
-        success = WimBackup.creatFullBackup(
-                source,
-                compressLevel="default"
-            )
-            
+        result = mainUIModule.MainUI.readSettingsInfoFromTXT("compressLevel")
+        if result == "快速":
+             global success
+             success = WimBackup.creatFullBackup(source, compressLevel="1")
+        elif result == "中等":
+             success = WimBackup.creatFullBackup(source, compressLevel="default")
+        else:
+             success = WimBackup.creatFullBackup(source, compressLevel="15")
+
         if success:
                 self.status_label.config(text="备份完成")
                 messagebox.showinfo("成功", "备份已成功完成")
+                self.backup_button.config(state=tk.NORMAL)
         else:
                 self.status_label.config(text="备份失败")
                 messagebox.showerror("错误", "备份过程中出现错误")
+                self.backup_button.config(state=tk.NORMAL)
                 
             
     def update_progress(self, value):
@@ -76,4 +88,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = BackupUI(root)
     root.mainloop()
-
