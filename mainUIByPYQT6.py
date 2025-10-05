@@ -10,13 +10,14 @@ from PyQt6.QtCore import Qt, QUrl, QTimer
 from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtGui import QPalette, QColor
 import re
+import threading
 
 class MainUI(QMainWindow):
 
     if os.path.exists("settings.txt") != True:
         with open("settings.txt", "w",encoding="utf-8") as f:
             f.write("{'compression': '中等', 'verify_backup': True, 'confirm_overwrite': True, 'create_directories': True, 'theme': '浅色'}")
-    def readSettingsInfoFromTXT(objFunc:str):             # 目前仅支持读取主题
+    def readSettingsInfoFromTXT(objFunc:str):             
         with open("settings.txt", "r",encoding="utf-8") as f:
             settingsInfo = f.readlines()
             settingsInfo = str(settingsInfo)
@@ -174,27 +175,33 @@ class MainUI(QMainWindow):
     def backup_files(self):
         try:
             if not os.path.exists("./backupUI.exe"):
-                os.system("backupUI.py")
+                threadBackup = threading.Thread(target=os.system, args=("backupUI.py",))
+                threadBackup.start()
             else:
-                os.system("start ./backupUI.exe")
+                threadBackupWithoutPy = threading.Thread(target=os.system, args=("start ./backupUI.exe",))
+                threadBackupWithoutPy.start()
         except Exception as e:
             QMessageBox.critical(self, "错误", "备份程序未找到，请检查备份程序是否在当前目录下")
             
     def restore_files(self):
         try:
             if not os.path.exists("./restoreUI.exe"):
-                os.system("restoreUI.py")
+                threadRestore = threading.Thread(target=os.system, args=("restoreUI.py",))
+                threadRestore.start()
             else:
-                os.system("start ./restoreUI.exe")
+                threadRestoreWithoutPy = threading.Thread(target=os.system, args=("start ./restoreUI.exe",))
+                threadRestoreWithoutPy.start()
         except Exception as e:
             QMessageBox.critical(self, "错误", "恢复程序未找到，请检查恢复程序是否在当前目录下")
             
     def open_settings(self):
         try:
             if not os.path.exists("./settingsUI.exe"):
-                os.system("settingsUI.py")
+                threadSettings = threading.Thread(target=os.system, args=("settingsUI.py",))
+                threadSettings.start()
             else:
-                os.system("start ./settingsUI.exe")
+                threadSettingsWithoutPy = threading.Thread(target=os.system, args=("start ./settingsUI.exe",))
+                threadSettingsWithoutPy.start()
         except Exception as e:
             QMessageBox.critical(self, "错误", "设置程序未找到，请检查设置程序是否在当前目录下")
             
