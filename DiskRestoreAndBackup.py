@@ -7,6 +7,7 @@ import sys
 from datetime import datetime
 import hashlib
 import re
+import threading
 
 # 设置日志
 logging.basicConfig(level=logging.INFO)
@@ -46,7 +47,7 @@ class WimBackup:
             f.write(f"{backupInfo}\n")
 
         with open(txtFileInfo, "r")as f:
-            backupTXTFileInfo = f.readlines()
+            backupTXTFileInfo = f.readline()
             if backupTXTFileInfo == "":
                 print("备份信息未成功写入文件")
                 os.remove(txtFileInfo)
@@ -70,13 +71,25 @@ class WimBackup:
 
         command = f"sudo ./wimlib/wimlib-imagex.exe capture --compress=LZX:{str(compressLevel)} {backupPath} {backupFileName} {backupPath} {backupFileName}" # 设置压缩级别，default=7
         print(command)
-        result=os.system(command)
-        if result == 0:
+        def threadBackup(cmd):
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            if result.returncode == 0:
+                print(f"文件已经备份为{backupFileName}")
+                print(f"{result.stdout}")
+                return True
+            else:
+                print("备份失败")
+                return False
+        
+        try:
+            backupResult = threading.Thread(target=lambda:threadBackup(command))
+            backupResult.start()
+            backupResult.join()
             WimBackup.writeBackupInformationsToTXT(backupFileName,backupPath)
-            print(f"文件已经备份为{backupFileName}")
             return True
-        else:
-            print("备份失败")
+        except Exception as e:
+            print(f"备份失败，错误信息：{e}")
+            return False
 
 class WimRestore:
     def RestoreWim(sourcePath,backupFilePath,autoRecoveryAllBackupFiles:bool,autoRestoreBackupsToPath:bool,checkHash:bool):
